@@ -1,5 +1,9 @@
 package com.ssca.utils;
 
+import java.nio.ByteBuffer;
+import java.nio.CharBuffer;
+import java.nio.charset.Charset;
+
 public class ByteUtils {
 	public static byte[] reverseFourBytes(byte[] res){
 		if(res.length!=4){
@@ -62,5 +66,15 @@ public class ByteUtils {
 	        stringBuilder.append(hv);  
 	    }  
 	    return stringBuilder.toString();  
+	}
+	
+	public static char[] getChars (byte[] bytes) {
+	      Charset cs = Charset.forName ("UTF-8");
+	      ByteBuffer bb = ByteBuffer.allocate (bytes.length);
+	      bb.put (bytes);
+	                 bb.flip ();
+	       CharBuffer cb = cs.decode (bb);
+	  
+	   return cb.array();
 	}
 }
