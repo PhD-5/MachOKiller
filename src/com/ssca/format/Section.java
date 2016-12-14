@@ -3,7 +3,8 @@ package com.ssca.format;
 public class Section {
 	public String sectname;
 	public String segment;
-	public String addr;
+	public String addr_str;
+	public long addr;
 	public long size;
 	public int offset;
 	public int align;

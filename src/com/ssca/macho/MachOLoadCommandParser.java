@@ -80,7 +80,12 @@ public class MachOLoadCommandParser {
 
 
 			//add to Mach-O instance
-			macho.lcList.add(lc);
+//			macho.lcList.add(lc);
+			if(lc.name==null||lc.name.equals(""))
+				macho.lcMap.put(lc.command.trim(), lc);
+			else
+				macho.lcMap.put(lc.name.trim(), lc);
+				
 
 		}
 
@@ -96,13 +101,14 @@ public class MachOLoadCommandParser {
 		String segment = new String(ByteUtils.getChars(segmentByte));
 		//		lcValue.put("segment", segment);
 		lc.segment = segment;
-
+		lc.name = lc.command+lc.segment;
+		
 		//read vm addr
 		if(arch == 32){
 			byte[]vm_addr = new byte[4];
 			dis.read(vm_addr);
 			//		lcValue.put("VM Address", ByteUtils.bytesToHexString(ByteUtils.reverseFourBytes(vm_addr)));
-			lc.vm_addr = ByteUtils.bytesToHexString(ByteUtils.reverseFourBytes(vm_addr));
+			lc.vm_addr_str = ByteUtils.bytesToHexString(ByteUtils.reverseFourBytes(vm_addr));
 
 			//read vm size
 			byte[]vm_size = new byte[4];
@@ -126,25 +132,25 @@ public class MachOLoadCommandParser {
 			byte[]vm_addr = new byte[8];
 			dis.read(vm_addr);
 			//		lcValue.put("VM Address", ByteUtils.bytesToHexString(ByteUtils.reverseFourBytes(vm_addr)));
-			lc.vm_addr = ByteUtils.bytesToHexString(ByteUtils.reverseBytes(vm_addr));
+			lc.vm_addr_str = ByteUtils.bytesToHexString(ByteUtils.reverseBytes(vm_addr));
 
 			//read vm size
 			byte[]vm_size = new byte[8];
 			dis.read(vm_size);
 			//		lcValue.put("VM Size", ByteUtils.fourBytesToInt(vm_size)+"");
-			lc.vm_size = ByteUtils.eightBytesToInt(vm_size);
+			lc.vm_size = ByteUtils.eightBytesToLong(vm_size);
 
 			//read file offset
 			byte[]file_offset = new byte[8];
 			dis.read(file_offset);
 			//		lcValue.put("File Offset", ByteUtils.fourBytesToInt(file_offset)+"");
-			lc.file_off = ByteUtils.eightBytesToInt(file_offset);
+			lc.file_off = ByteUtils.eightBytesToLong(file_offset);
 
 			//read file size
 			byte[]file_size = new byte[8];
 			dis.read(file_size);
 			//		lcValue.put("File Size", ByteUtils.fourBytesToInt(file_size)+"");
-			lc.file_size = ByteUtils.eightBytesToInt(file_size);
+			lc.file_size = ByteUtils.eightBytesToLong(file_size);
 
 		}
 		//read max protection   TODO
@@ -201,7 +207,8 @@ public class MachOLoadCommandParser {
 			//read addr
 			byte[]vm_addr = new byte[4];
 			dis.read(vm_addr);
-			section.addr = new String(ByteUtils.bytesToHexString(ByteUtils.reverseFourBytes(vm_addr)));
+			section.addr = ByteUtils.fourBytesToInt(vm_addr);
+			section.addr_str = new String(ByteUtils.bytesToHexString(ByteUtils.reverseFourBytes(vm_addr)));
 
 			//read size 
 			byte[]size = new byte[4];
@@ -211,12 +218,13 @@ public class MachOLoadCommandParser {
 			//read addr
 			byte[]vm_addr = new byte[8];
 			dis.read(vm_addr);
-			section.addr = new String(ByteUtils.bytesToHexString(ByteUtils.reverseBytes(vm_addr)));
+			section.addr = ByteUtils.eightBytesToLong(vm_addr);
+			section.addr_str = new String(ByteUtils.bytesToHexString(ByteUtils.reverseBytes(vm_addr)));
 
 			//read size 
 			byte[]size = new byte[8];
 			dis.read(size);
-			section.size = ByteUtils.eightBytesToInt(size);
+			section.size = ByteUtils.eightBytesToLong(size);
 		}
 		//read offset
 		byte[]offset = new byte[4];
@@ -229,6 +237,7 @@ public class MachOLoadCommandParser {
 		if(arch==64)
 			dis.skipBytes(4);
 
-		lc.sections.add(section);
+		lc.sections.put(section.sectname.trim(), section);
+//		lc.sections.add(section);
 	}
 }

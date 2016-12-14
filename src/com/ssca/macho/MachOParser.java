@@ -13,25 +13,26 @@ public class MachOParser {
 		MachO macho = new MachO();
 
 		MachOHeaderParser.getMachOHeaderInfo(filePath, machOff,macho);
-		System.out.println(macho.header.magic);
-		System.out.println(macho.header.cputype);
-		System.out.println(macho.header.cpusubtype);
-		System.out.println(macho.header.filetype);
-		System.out.println(macho.header.lcNumbers);
-		System.out.println(macho.header.lcSize);
-		System.out.println(macho.header.Flags);
-		for(int i=0;i<macho.header.lcNumbers;i++){
-			LoadCommand lc = macho.lcList.get(i);
-			System.out.println(lc.command);
-			if( lc instanceof SegmentLC){
-				System.out.println("  "+((SegmentLC)lc).segment);
-				for(int j=0;j<((SegmentLC)lc).sections.size();j++){
-					Section sec = ((SegmentLC)lc).sections.get(j);
-					System.out.println("    "+sec.sectname);
-					System.out.println("    	vm:"+sec.addr+"   off:"+sec.offset);
-				}
-			}
-		}
+		ClassListParser.getClassListItem(filePath, machOff, macho);
+//		System.out.println(macho.header.magic);
+//		System.out.println(macho.header.cputype);
+//		System.out.println(macho.header.cpusubtype);
+//		System.out.println(macho.header.filetype);
+//		System.out.println(macho.header.lcNumbers);
+//		System.out.println(macho.header.lcSize);
+//		System.out.println(macho.header.Flags);
+//		for(int i=0;i<macho.header.lcNumbers;i++){
+//			LoadCommand lc = macho.lcList.get(i);
+//			System.out.println(lc.command);
+//			if( lc instanceof SegmentLC){
+//				System.out.println("  "+((SegmentLC)lc).segment);
+//				for(int j=0;j<((SegmentLC)lc).sections.size();j++){
+//					Section sec = ((SegmentLC)lc).sections.get(j);
+//					System.out.println("    "+sec.sectname);
+//					System.out.println("    	vm:"+sec.addr+"   off:"+sec.offset);
+//				}
+//			}
+//		}
 	}
 
 

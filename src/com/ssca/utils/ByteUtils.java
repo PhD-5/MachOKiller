@@ -60,7 +60,7 @@ public class ByteUtils {
 		return targets;   
 	}
 	
-	public static long eightBytesToInt(byte[] res){
+	public static long eightBytesToLong(byte[] res){
 		byte[]lowByte = new byte[4];
 		for(int i=0;i<4;i++)
 			lowByte[i] = res[i];
