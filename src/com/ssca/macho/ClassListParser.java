@@ -16,13 +16,20 @@ public class ClassListParser {
 	public static void getClassListItem(String filePath,int machOff, MachO macho) throws IOException{
 		DataInputStream dis = InputStreamUtils.getFileDis(filePath);
 		//get _TEXT,__objc_classlist file off
-		Section sec = ((SegmentLC)(macho.lcMap.get("LC_SEGMENT_64__DATA"))).sections.get("__objc_classlist");
-		long classListOffset=sec.offset;
-		long secSize = sec.size;
-		if(macho.header.arch==64)
+		long classListOffset;
+		long secSize;
+		if(macho.header.arch==64){
+			Section sec = ((SegmentLC)(macho.lcMap.get("LC_SEGMENT_64__DATA"))).sections.get("__objc_classlist");
+			classListOffset=sec.offset;
+			secSize = sec.size;
 			secSize/=8;
-		else
+		}
+		else{
+			Section sec = ((SegmentLC)(macho.lcMap.get("LC_SEGMENT__DATA"))).sections.get("__objc_classlist");
+			classListOffset=sec.offset;
+			secSize = sec.size;
 			secSize/=4;
+		}
 		
 		dis.skip(machOff+classListOffset);
 		
@@ -40,6 +47,18 @@ public class ClassListParser {
 				//parse data
 				parseDataSection(filePath, machOff, macho, classOff);
 				
+			}else{
+				byte[]data = new byte[4];
+				dis.read(data);
+				long vm = ByteUtils.fourBytesToInt(data);
+				// calculate file offset of data(which is vm addr)
+				Section _DATA__data = ((SegmentLC)(macho.lcMap.get("LC_SEGMENT__DATA"))).sections.get("__data");
+				long dataSectionVM = _DATA__data.addr;
+				int dataSectionOff = _DATA__data.offset;
+				long classOff = vm - dataSectionVM + dataSectionOff;
+				
+				//parse data
+				parseDataSection(filePath, machOff, macho, classOff);
 			}
 		}
 	}
@@ -60,6 +79,13 @@ public class ClassListParser {
 			
 		}else if(macho.header.arch==32){//TODO 32
 			dis.skip(16);
+			byte[]data = new byte[4];
+			dis.read(data);
+			Section _DATA__const = ((SegmentLC)(macho.lcMap.get("LC_SEGMENT__DATA"))).sections.get("__objc_const");
+			long constSectionVM = _DATA__const.addr;
+			int constSectionOff = _DATA__const.offset;
+			long constOffset = ByteUtils.fourBytesToInt(data) - constSectionVM + constSectionOff;
+			parseConstSection(filePath, machOff, macho, constOffset);
 		}
 		
 	}
@@ -96,7 +122,31 @@ public class ClassListParser {
 			parseBaseMethods(filePath, machOff, macho, baseMethOff);
 			
 		}else if(macho.header.arch==32){//TODO 32
+			dis.skipBytes(16);
+			byte[]name = new byte[4];
+			dis.read(name);
+			byte[]baseMethods = new byte[4];
+			dis.read(baseMethods);
 			
+			//parse name
+			Section _TEXT__classname = ((SegmentLC)(macho.lcMap.get("LC_SEGMENT__TEXT"))).sections.get("__objc_classname");
+			long classnameSectionVM = _TEXT__classname.addr;
+			int classnameSectionOff = _TEXT__classname.offset;
+			long classOff = ByteUtils.fourBytesToInt(name) - classnameSectionVM + classnameSectionOff;
+			String className = new String(ReadStrFromAddr.read(filePath, classOff+machOff));
+			System.out.println(className);
+//			parseClassName(filePath, machOff, macho, classOff);
+			
+			//parse basemethods
+			if(ByteUtils.fourBytesToInt(baseMethods)==0){
+				System.out.println("  has no instance methods");
+				return;
+			}
+			Section _DATA__const = ((SegmentLC)(macho.lcMap.get("LC_SEGMENT__DATA"))).sections.get("__objc_const");
+			long constSectionVM = _DATA__const.addr;
+			int constSectionOff = _DATA__const.offset;
+			long baseMethOff = ByteUtils.fourBytesToInt(baseMethods) - constSectionVM + constSectionOff;
+			parseBaseMethods(filePath, machOff, macho, baseMethOff);
 		}
 	}
 	public static void parseBaseMethods(String filePath, int machOff,MachO macho, long baseMethOffset) throws IOException{
@@ -127,7 +177,26 @@ public class ClassListParser {
 			
 			
 		}else if(macho.header.arch==32){
+			byte[]ensize = new byte[4];
+			byte[]count = new byte[4];
+			dis.read(ensize);
+			dis.read(count);
 			
+			for(int i=0;i<ByteUtils.fourBytesToInt(count);i++){
+				byte[]name = new byte[4];
+				byte[]type = new byte[4];
+				byte[]imp  = new byte[4];
+				dis.read(name);
+				dis.read(type);
+				dis.read(imp);
+				
+				Section _TEXT__methname = ((SegmentLC)(macho.lcMap.get("LC_SEGMENT__TEXT"))).sections.get("__objc_methname");
+				long methSectionVM = _TEXT__methname.addr;
+				int methSectionOff = _TEXT__methname.offset;
+				long baseMethOff = ByteUtils.fourBytesToInt(name) - methSectionVM + methSectionOff;
+				String methName =new String(ReadStrFromAddr.read(filePath, baseMethOff+machOff));
+				System.out.println("  "+methName);
+			}
 		}
 	}
 }

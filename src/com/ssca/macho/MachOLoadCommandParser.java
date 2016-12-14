@@ -25,7 +25,7 @@ public class MachOLoadCommandParser {
 			switch (cmdInt) {
 			case LcName.LC_SEGEMENT:
 				lc = new SegmentLC();
-				lc.command = "LC_SEGEMENT";
+				lc.command = "LC_SEGMENT";
 				break;
 			case LcName.LC_SEGMENT_64:
 				lc = new SegmentLC();
@@ -67,7 +67,7 @@ public class MachOLoadCommandParser {
 			int lcSize = ByteUtils.fourBytesToInt(lcSizeByte);
 			lc.cmdSize = lcSize;
 
-			if(lc.command.equals("LC_SEGEMENT") || lc.command.equals("LC_SEGMENT_64")){
+			if(lc.command.equals("LC_SEGMENT") || lc.command.equals("LC_SEGMENT_64")){
 				// parse LC_SEGEMENT command
 				load_segment_parse(dis,(SegmentLC)lc,macho.header.arch);
 			}else if(lc.command.equals("LC_LOAD_DYLINKER")){
