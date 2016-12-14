@@ -36,7 +36,8 @@ public class FatParser {
 			fatHeader.SizeList.add(ByteUtils.fourBytesToInt(size));
 			
 			//parse each mach-o
-			MachO res = MachOParser.parseMach_O(filePath, ByteUtils.fourBytesToInt(offset));
+			MachOParser machParser = new MachOParser(filePath, ByteUtils.fourBytesToInt(offset));
+			MachO res = machParser.parseMach_O();
 			fat.machoList.add(res);
 		}
 		return fat;

@@ -14,8 +14,15 @@ import com.ssca.format.Section;
 import com.ssca.utils.ByteUtils;
 
 public class MachOLoadCommandParser {
+	private DataInputStream dis;
+	private MachO macho;
+	
+	public MachOLoadCommandParser(DataInputStream dis, MachO macho){
+		this.dis = dis;
+		this.macho = macho;
+	}
 
-	public static void getLCInfo(DataInputStream dis, MachO macho) throws IOException{
+	public void getLCInfo() throws IOException{
 		for(int i=0;i<macho.header.lcNumbers;i++){
 			LoadCommand lc ;
 			//read lc name
@@ -69,7 +76,7 @@ public class MachOLoadCommandParser {
 
 			if(lc.command.equals("LC_SEGMENT") || lc.command.equals("LC_SEGMENT_64")){
 				// parse LC_SEGEMENT command
-				load_segment_parse(dis,(SegmentLC)lc,macho.header.arch);
+				load_segment_parse((SegmentLC)lc,macho.header.arch);
 			}else if(lc.command.equals("LC_LOAD_DYLINKER")){
 				dis.skipBytes(lcSize-8);
 			}else if(lc.command.equals("LC_UUID")){
@@ -92,7 +99,7 @@ public class MachOLoadCommandParser {
 
 	}
 
-	public static void load_segment_parse(DataInputStream dis, SegmentLC lc, int arch) throws IOException{
+	private  void load_segment_parse(SegmentLC lc, int arch) throws IOException{
 		//		Map<String, String> lcValue = new HashMap<>();
 		//		SegmentLC value = new SegmentLC();
 		//read segment name
@@ -185,12 +192,12 @@ public class MachOLoadCommandParser {
 
 		//parse sections if need
 		for(int j=0;j<lc.sec_num;j++){
-			section_parse(dis, lc, arch);
+			section_parse( lc, arch);
 		}
 
 	}
 
-	private static void section_parse(DataInputStream dis, SegmentLC lc, int arch) throws IOException{
+	private  void section_parse(SegmentLC lc, int arch) throws IOException{
 		Section section = new Section();
 
 		//read section name

@@ -2,6 +2,8 @@ package com.ssca.macho;
 
 import java.io.IOException;
 
+import javax.crypto.Mac;
+
 import com.ssca.format.LoadCommand;
 import com.ssca.format.MachO;
 import com.ssca.format.Section;
@@ -9,21 +11,24 @@ import com.ssca.format.SegmentLC;
 
 
 public class MachOParser {
-	public static MachO parseMach_O(String filePath, int machOff) throws IOException{
-		MachO macho = new MachO();
-
-		MachOHeaderParser.getMachOHeaderInfo(filePath, machOff,macho);
-		ClassListParser.getClassListItem(filePath, machOff, macho);
+	private MachO macho;
+	private String filePath;
+	private int machOff;
+	
+	public MachOParser(String filePath, int machOff){
+		this.filePath = filePath;
+		this.machOff = machOff;
+	}
+	public  MachO parseMach_O() throws IOException{
+		macho = new MachO();
+		
+		MachOHeaderParser machoParser = new MachOHeaderParser(filePath, machOff,macho);
+		machoParser.getMachOHeaderInfo();
+		
+		ClassListParser classListParser = new ClassListParser(filePath, machOff, macho);
+		classListParser.getClassListItem();
 
 		return macho;
 	}
 
-
-	public static void main(String[] args) {
-		try {
-			MachOParser.parseMach_O("/Users/konghaohao/Desktop/iOStest/DamnVulnerableIOSApp", 16384);
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
-	}
 }

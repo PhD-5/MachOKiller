@@ -22,7 +22,7 @@ public class ParseFile {
 				Fat fat = FatParser.getFatInfo(filePath);
 				return fat;
 			}else{
-				MachO macho = MachOParser.parseMach_O(filePath, 0);
+				MachO macho = new MachOParser(filePath, 0).parseMach_O();
 				return macho;
 			}
 			
@@ -33,7 +33,7 @@ public class ParseFile {
 	}
 	
 	public static void main(String[] args) {
-		Object o = parse("/Users/konghaohao/Desktop/iOStest/DamnVulnerableIOSApp");
+		Object o = parse("/Users/konghaohao/Desktop/iOStest/VulApp");
 		if(o instanceof Fat){
 			System.out.println("this is a fat");
 			Fat fat = (Fat)o;

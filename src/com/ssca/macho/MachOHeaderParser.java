@@ -13,7 +13,16 @@ import com.ssca.utils.ByteUtils;
 import com.ssca.utils.InputStreamUtils;
 
 public class MachOHeaderParser {
-	public static void getMachOHeaderInfo(String filePath, int offset, MachO macho) throws IOException{
+	private String filePath;
+	private int offset;
+	private MachO macho;
+	public MachOHeaderParser(String filePath, int offset, MachO macho){
+		this.filePath = filePath;
+		this.offset = offset;
+		this.macho = macho;
+	}
+	
+	public void getMachOHeaderInfo() throws IOException{
 		MachOHeader header = new MachOHeader();
 		DataInputStream dis = InputStreamUtils.getFileDis(filePath);
 		dis.skipBytes(offset);
@@ -175,7 +184,8 @@ public class MachOHeaderParser {
 			macho.header = header;
 			
 			//continue to parse LC
-			MachOLoadCommandParser.getLCInfo(dis,macho);
+			MachOLoadCommandParser lcParser = new MachOLoadCommandParser(dis,macho);
+			lcParser.getLCInfo();
 		}
 	}
 }	

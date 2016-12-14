@@ -13,7 +13,18 @@ import com.ssca.utils.InputStreamUtils;
 import com.ssca.utils.ReadStrFromAddr;
 
 public class ClassListParser {
-	public static void getClassListItem(String filePath,int machOff, MachO macho) throws IOException{
+	
+	private String filePath;
+	private int machOff;
+	private MachO macho;
+	
+	public ClassListParser(String filePath,int machOff, MachO macho){
+		this.filePath = filePath;
+		this.machOff = machOff;
+		this.macho = macho;
+	}
+	
+	public  void getClassListItem() throws IOException{
 		DataInputStream dis = InputStreamUtils.getFileDis(filePath);
 		//get _TEXT,__objc_classlist file off
 		long classListOffset;
@@ -45,7 +56,7 @@ public class ClassListParser {
 				long classOff = vm - dataSectionVM + dataSectionOff;
 				
 				//parse data
-				parseDataSection(filePath, machOff, macho, classOff);
+				parseDataSection(classOff);
 				
 			}else{
 				byte[]data = new byte[4];
@@ -58,12 +69,12 @@ public class ClassListParser {
 				long classOff = vm - dataSectionVM + dataSectionOff;
 				
 				//parse data
-				parseDataSection(filePath, machOff, macho, classOff);
+				parseDataSection( classOff);
 			}
 		}
 	}
 	
-	public static void parseDataSection(String filePath, int machOff,MachO macho, long dataOffset) throws IOException{
+	public  void parseDataSection(long dataOffset) throws IOException{
 		DataInputStream dis = InputStreamUtils.getFileDis(filePath);
 		dis.skip(machOff+dataOffset);
 		
@@ -75,7 +86,7 @@ public class ClassListParser {
 			long constSectionVM = _DATA__const.addr;
 			int constSectionOff = _DATA__const.offset;
 			long constOffset = ByteUtils.eightBytesToLong(data) - constSectionVM + constSectionOff;
-			parseConstSection(filePath, machOff, macho, constOffset);
+			parseConstSection(constOffset);
 			
 		}else if(macho.header.arch==32){//TODO 32
 			dis.skip(16);
@@ -85,12 +96,12 @@ public class ClassListParser {
 			long constSectionVM = _DATA__const.addr;
 			int constSectionOff = _DATA__const.offset;
 			long constOffset = ByteUtils.fourBytesToInt(data) - constSectionVM + constSectionOff;
-			parseConstSection(filePath, machOff, macho, constOffset);
+			parseConstSection( constOffset);
 		}
 		
 	}
 	
-	public static void parseConstSection(String filePath, int machOff,MachO macho, long constOffset) throws IOException{
+	public  void parseConstSection(long constOffset) throws IOException{
 		DataInputStream dis = InputStreamUtils.getFileDis(filePath);
 		dis.skip(machOff+constOffset);
 		
@@ -119,7 +130,7 @@ public class ClassListParser {
 			int constSectionOff = _DATA__const.offset;
 			long baseMethOff = ByteUtils.eightBytesToLong(baseMethods) - constSectionVM + constSectionOff;
 			macho.classAndMethods.put(className, new ArrayList<String>());
-			parseBaseMethods(filePath, machOff, macho, baseMethOff,className);
+			parseBaseMethods(baseMethOff,className);
 			
 		}else if(macho.header.arch==32){//TODO 32
 			dis.skipBytes(16);
@@ -147,10 +158,10 @@ public class ClassListParser {
 			int constSectionOff = _DATA__const.offset;
 			long baseMethOff = ByteUtils.fourBytesToInt(baseMethods) - constSectionVM + constSectionOff;
 			macho.classAndMethods.put(className, new ArrayList<String>());
-			parseBaseMethods(filePath, machOff, macho, baseMethOff,className);
+			parseBaseMethods(baseMethOff,className);
 		}
 	}
-	public static void parseBaseMethods(String filePath, int machOff,MachO macho, long baseMethOffset,String className) throws IOException{
+	public  void parseBaseMethods(long baseMethOffset,String className) throws IOException{
 		DataInputStream dis = InputStreamUtils.getFileDis(filePath);
 		dis.skip(machOff+baseMethOffset);
 		
