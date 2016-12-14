@@ -38,9 +38,8 @@ public class MachOParser {
 
 	public static void main(String[] args) {
 		try {
-			MachOParser.parseMach_O("/Users/konghaohao/Desktop/iOStest/VulApp", 0);
+			MachOParser.parseMach_O("/Users/konghaohao/Desktop/iOStest/DamnVulnerableIOSApp", 2146304);
 		} catch (IOException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 	}

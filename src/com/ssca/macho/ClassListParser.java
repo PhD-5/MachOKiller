@@ -80,12 +80,15 @@ public class ClassListParser {
 			long classnameSectionVM = _TEXT__classname.addr;
 			int classnameSectionOff = _TEXT__classname.offset;
 			long classOff = ByteUtils.eightBytesToLong(name) - classnameSectionVM + classnameSectionOff;
-			System.out.println(classOff);
-			String className = new String(ReadStrFromAddr.read(filePath, classOff));
+			String className = new String(ReadStrFromAddr.read(filePath, classOff+machOff));
 			System.out.println(className);
 //			parseClassName(filePath, machOff, macho, classOff);
 			
 			//parse basemethods
+			if(ByteUtils.eightBytesToLong(baseMethods)==0){
+				System.out.println("  has no instance methods");
+				return;
+			}
 			Section _DATA__const = ((SegmentLC)(macho.lcMap.get("LC_SEGMENT_64__DATA"))).sections.get("__objc_const");
 			long constSectionVM = _DATA__const.addr;
 			int constSectionOff = _DATA__const.offset;
@@ -118,7 +121,7 @@ public class ClassListParser {
 				long methSectionVM = _TEXT__methname.addr;
 				int methSectionOff = _TEXT__methname.offset;
 				long baseMethOff = ByteUtils.eightBytesToLong(name) - methSectionVM + methSectionOff;
-				String methName =new String(ReadStrFromAddr.read(filePath, baseMethOff));
+				String methName =new String(ReadStrFromAddr.read(filePath, baseMethOff+machOff));
 				System.out.println("  "+methName);
 			}
 			
