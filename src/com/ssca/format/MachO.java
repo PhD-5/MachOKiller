@@ -10,4 +10,6 @@ public class MachO {
 //	public List<LoadCommand> lcList= new ArrayList<>();
 	
 	public Map<String,LoadCommand> lcMap = new HashMap<String, LoadCommand>();
+	
+	public Map<String,List<String>> classAndMethods = new HashMap<String, List<String>>();
 }

@@ -108,7 +108,6 @@ public class ClassListParser {
 			long classOff = ByteUtils.eightBytesToLong(name) - classnameSectionVM + classnameSectionOff;
 			String className = new String(ReadStrFromAddr.read(filePath, classOff+machOff));
 			System.out.println(className);
-//			parseClassName(filePath, machOff, macho, classOff);
 			
 			//parse basemethods
 			if(ByteUtils.eightBytesToLong(baseMethods)==0){
@@ -119,7 +118,8 @@ public class ClassListParser {
 			long constSectionVM = _DATA__const.addr;
 			int constSectionOff = _DATA__const.offset;
 			long baseMethOff = ByteUtils.eightBytesToLong(baseMethods) - constSectionVM + constSectionOff;
-			parseBaseMethods(filePath, machOff, macho, baseMethOff);
+			macho.classAndMethods.put(className, new ArrayList<String>());
+			parseBaseMethods(filePath, machOff, macho, baseMethOff,className);
 			
 		}else if(macho.header.arch==32){//TODO 32
 			dis.skipBytes(16);
@@ -146,10 +146,11 @@ public class ClassListParser {
 			long constSectionVM = _DATA__const.addr;
 			int constSectionOff = _DATA__const.offset;
 			long baseMethOff = ByteUtils.fourBytesToInt(baseMethods) - constSectionVM + constSectionOff;
-			parseBaseMethods(filePath, machOff, macho, baseMethOff);
+			macho.classAndMethods.put(className, new ArrayList<String>());
+			parseBaseMethods(filePath, machOff, macho, baseMethOff,className);
 		}
 	}
-	public static void parseBaseMethods(String filePath, int machOff,MachO macho, long baseMethOffset) throws IOException{
+	public static void parseBaseMethods(String filePath, int machOff,MachO macho, long baseMethOffset,String className) throws IOException{
 		DataInputStream dis = InputStreamUtils.getFileDis(filePath);
 		dis.skip(machOff+baseMethOffset);
 		
@@ -173,6 +174,7 @@ public class ClassListParser {
 				long baseMethOff = ByteUtils.eightBytesToLong(name) - methSectionVM + methSectionOff;
 				String methName =new String(ReadStrFromAddr.read(filePath, baseMethOff+machOff));
 				System.out.println("  "+methName);
+				macho.classAndMethods.get(className).add(methName);
 			}
 			
 			
@@ -196,6 +198,7 @@ public class ClassListParser {
 				long baseMethOff = ByteUtils.fourBytesToInt(name) - methSectionVM + methSectionOff;
 				String methName =new String(ReadStrFromAddr.read(filePath, baseMethOff+machOff));
 				System.out.println("  "+methName);
+				macho.classAndMethods.get(className).add(methName);
 			}
 		}
 	}
