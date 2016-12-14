@@ -28,6 +28,7 @@ public class MachOParser {
 				for(int j=0;j<((SegmentLC)lc).sections.size();j++){
 					Section sec = ((SegmentLC)lc).sections.get(j);
 					System.out.println("    "+sec.sectname);
+					System.out.println("    	vm:"+sec.addr+"   off:"+sec.offset);
 				}
 			}
 		}
@@ -36,7 +37,7 @@ public class MachOParser {
 
 	public static void main(String[] args) {
 		try {
-			MachOParser.parseMach_O("/Users/konghaohao/Desktop/iOStest/DamnVulnerableIOSApp", 16384);
+			MachOParser.parseMach_O("/Users/konghaohao/Desktop/iOStest/VulApp", 0);
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();

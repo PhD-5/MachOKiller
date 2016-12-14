@@ -4,7 +4,7 @@ public class Section {
 	public String sectname;
 	public String segment;
 	public String addr;
-	public int size;
+	public long size;
 	public int offset;
 	public int align;
 	public int reloff;

@@ -23,10 +23,14 @@ public class MachOHeaderParser {
 			dis.read(magicByte);
 			ByteUtils.reverseFourBytes(magicByte);
 			String magicHex = ByteUtils.bytesToHexString(magicByte);
-			if(magicHex.equals("feedface"))
+			if(magicHex.equals("feedface")){
 				header.magic = magicHex+":32bit";
-			else if(magicHex.equals("feedfacf"))
+				header.arch = 32;
+			}
+			else if(magicHex.equals("feedfacf")){
 				header.magic = magicHex+":64bit";
+				header.arch = 64;
+			}
 				
 			//read cpu type
 			byte[]cpuTypeByte = new byte[4];
@@ -165,6 +169,8 @@ public class MachOHeaderParser {
 			if((thisFlags&Flags.MH_WEAK_DEFINES)!=0)
 				header.Flags.add("MH_WEAK_DEFINES");
 			
+			if(header.arch==64)
+				dis.skipBytes(4);
 				
 			macho.header = header;
 			

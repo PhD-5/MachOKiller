@@ -67,10 +67,9 @@ public class MachOLoadCommandParser {
 			int lcSize = ByteUtils.fourBytesToInt(lcSizeByte);
 			lc.cmdSize = lcSize;
 
-			
-			if(lc.command.equals("LC_SEGEMENT") || lc.command.equals("LC_SEGEMENT_64")){
+			if(lc.command.equals("LC_SEGEMENT") || lc.command.equals("LC_SEGMENT_64")){
 				// parse LC_SEGEMENT command
-				load_segment_parse(dis,(SegmentLC)lc);
+				load_segment_parse(dis,(SegmentLC)lc,macho.header.arch);
 			}else if(lc.command.equals("LC_LOAD_DYLINKER")){
 				dis.skipBytes(lcSize-8);
 			}else if(lc.command.equals("LC_UUID")){
@@ -88,107 +87,148 @@ public class MachOLoadCommandParser {
 
 	}
 
-	public static void load_segment_parse(DataInputStream dis, SegmentLC lc) throws IOException{
-//		Map<String, String> lcValue = new HashMap<>();
-//		SegmentLC value = new SegmentLC();
+	public static void load_segment_parse(DataInputStream dis, SegmentLC lc, int arch) throws IOException{
+		//		Map<String, String> lcValue = new HashMap<>();
+		//		SegmentLC value = new SegmentLC();
 		//read segment name
 		byte[] segmentByte = new byte[16];
 		dis.read(segmentByte);
 		String segment = new String(ByteUtils.getChars(segmentByte));
-//		lcValue.put("segment", segment);
+		//		lcValue.put("segment", segment);
 		lc.segment = segment;
 
 		//read vm addr
-		byte[]vm_addr = new byte[4];
-		dis.read(vm_addr);
-//		lcValue.put("VM Address", ByteUtils.bytesToHexString(ByteUtils.reverseFourBytes(vm_addr)));
-		lc.vm_addr = ByteUtils.bytesToHexString(ByteUtils.reverseFourBytes(vm_addr));
+		if(arch == 32){
+			byte[]vm_addr = new byte[4];
+			dis.read(vm_addr);
+			//		lcValue.put("VM Address", ByteUtils.bytesToHexString(ByteUtils.reverseFourBytes(vm_addr)));
+			lc.vm_addr = ByteUtils.bytesToHexString(ByteUtils.reverseFourBytes(vm_addr));
 
-		//read vm size
-		byte[]vm_size = new byte[4];
-		dis.read(vm_size);
-//		lcValue.put("VM Size", ByteUtils.fourBytesToInt(vm_size)+"");
-		lc.vm_size = ByteUtils.fourBytesToInt(vm_size);
+			//read vm size
+			byte[]vm_size = new byte[4];
+			dis.read(vm_size);
+			//		lcValue.put("VM Size", ByteUtils.fourBytesToInt(vm_size)+"");
+			lc.vm_size = ByteUtils.fourBytesToInt(vm_size);
 
-		//read file offset
-		byte[]file_offset = new byte[4];
-		dis.read(file_offset);
-//		lcValue.put("File Offset", ByteUtils.fourBytesToInt(file_offset)+"");
-		lc.file_off = ByteUtils.fourBytesToInt(file_offset);
+			//read file offset
+			byte[]file_offset = new byte[4];
+			dis.read(file_offset);
+			//		lcValue.put("File Offset", ByteUtils.fourBytesToInt(file_offset)+"");
+			lc.file_off = ByteUtils.fourBytesToInt(file_offset);
 
-		//read file size
-		byte[]file_size = new byte[4];
-		dis.read(file_size);
-//		lcValue.put("File Size", ByteUtils.fourBytesToInt(file_size)+"");
-		lc.file_size = ByteUtils.fourBytesToInt(file_size);
+			//read file size
+			byte[]file_size = new byte[4];
+			dis.read(file_size);
+			//		lcValue.put("File Size", ByteUtils.fourBytesToInt(file_size)+"");
+			lc.file_size = ByteUtils.fourBytesToInt(file_size);
 
+		}else if(arch==64){
+			byte[]vm_addr = new byte[8];
+			dis.read(vm_addr);
+			//		lcValue.put("VM Address", ByteUtils.bytesToHexString(ByteUtils.reverseFourBytes(vm_addr)));
+			lc.vm_addr = ByteUtils.bytesToHexString(ByteUtils.reverseBytes(vm_addr));
+
+			//read vm size
+			byte[]vm_size = new byte[8];
+			dis.read(vm_size);
+			//		lcValue.put("VM Size", ByteUtils.fourBytesToInt(vm_size)+"");
+			lc.vm_size = ByteUtils.eightBytesToInt(vm_size);
+
+			//read file offset
+			byte[]file_offset = new byte[8];
+			dis.read(file_offset);
+			//		lcValue.put("File Offset", ByteUtils.fourBytesToInt(file_offset)+"");
+			lc.file_off = ByteUtils.eightBytesToInt(file_offset);
+
+			//read file size
+			byte[]file_size = new byte[8];
+			dis.read(file_size);
+			//		lcValue.put("File Size", ByteUtils.fourBytesToInt(file_size)+"");
+			lc.file_size = ByteUtils.eightBytesToInt(file_size);
+
+		}
 		//read max protection   TODO
 		byte[]max_pro = new byte[4];
 		dis.read(max_pro);
-//		lcValue.put("Maximum Protection", ByteUtils.bytesToHexString(ByteUtils.reverseFourBytes(max_pro)));
+		//		lcValue.put("Maximum Protection", ByteUtils.bytesToHexString(ByteUtils.reverseFourBytes(max_pro)));
 		lc.max_pro = ByteUtils.bytesToHexString(ByteUtils.reverseFourBytes(max_pro));
 
 		//read max protection TODO
 		byte[]init_pro = new byte[4];
 		dis.read(init_pro);
-//		lcValue.put("Maximum Protection", ByteUtils.bytesToHexString(ByteUtils.reverseFourBytes(init_pro)));
+		//		lcValue.put("Maximum Protection", ByteUtils.bytesToHexString(ByteUtils.reverseFourBytes(init_pro)));
 		lc.init_pro = ByteUtils.bytesToHexString(ByteUtils.reverseFourBytes(init_pro));
-		
+
 
 		//read numbers of section TODO
 		byte[]sec_num = new byte[4];
 		dis.read(sec_num);
-//		lcValue.put("Sections Number", ByteUtils.fourBytesToInt(sec_num)+"");
+		//		lcValue.put("Sections Number", ByteUtils.fourBytesToInt(sec_num)+"");
 		lc.sec_num = ByteUtils.fourBytesToInt(sec_num);
-		
-		
+
+
 		//read flags
 		byte[]flag = new byte[4];
 		dis.read(flag);
-//		lcValue.put("Flags", ByteUtils.bytesToHexString(ByteUtils.reverseFourBytes(flag)));
+		//		lcValue.put("Flags", ByteUtils.bytesToHexString(ByteUtils.reverseFourBytes(flag)));
 		lc.flags = ByteUtils.bytesToHexString(ByteUtils.reverseFourBytes(flag));
-		
+
 		//store map value
-//		lc.lcValue = lcValue;
-//		lc.lcValue = value;
-		
+		//		lc.lcValue = lcValue;
+		//		lc.lcValue = value;
+
 		//parse sections if need
 		for(int j=0;j<lc.sec_num;j++){
-			section_parse(dis, lc);
+			section_parse(dis, lc, arch);
 		}
+
 	}
-	
-	private static void section_parse(DataInputStream dis, SegmentLC lc) throws IOException{
+
+	private static void section_parse(DataInputStream dis, SegmentLC lc, int arch) throws IOException{
 		Section section = new Section();
-		
+
 		//read section name
 		byte[]sectionNameByte = new byte[16];
 		dis.read(sectionNameByte);
 		section.sectname = new String(ByteUtils.getChars(sectionNameByte));
-		
+
 		//read segment name
 		byte[]segmentNameByte = new byte[16];
 		dis.read(segmentNameByte);
 		section.segment = new String(ByteUtils.getChars(segmentNameByte));
-		
-		//read addr
-		byte[]vm_addr = new byte[4];
-		dis.read(vm_addr);
-		section.addr = new String(ByteUtils.bytesToHexString(ByteUtils.reverseFourBytes(vm_addr)));
-		
-		//read size 
-		byte[]size = new byte[4];
-		dis.read(size);
-		section.size = ByteUtils.fourBytesToInt(size);
-		
+
+		if(arch == 32){
+			//read addr
+			byte[]vm_addr = new byte[4];
+			dis.read(vm_addr);
+			section.addr = new String(ByteUtils.bytesToHexString(ByteUtils.reverseFourBytes(vm_addr)));
+
+			//read size 
+			byte[]size = new byte[4];
+			dis.read(size);
+			section.size = ByteUtils.fourBytesToInt(size);
+		}else if(arch == 64){
+			//read addr
+			byte[]vm_addr = new byte[8];
+			dis.read(vm_addr);
+			section.addr = new String(ByteUtils.bytesToHexString(ByteUtils.reverseBytes(vm_addr)));
+
+			//read size 
+			byte[]size = new byte[8];
+			dis.read(size);
+			section.size = ByteUtils.eightBytesToInt(size);
+		}
 		//read offset
 		byte[]offset = new byte[4];
 		dis.read(offset);
 		section.offset = ByteUtils.fourBytesToInt(offset);
-		
+
 		//skip others info TODO
 		dis.skipBytes(24);
-		
+
+		if(arch==64)
+			dis.skipBytes(4);
+
 		lc.sections.add(section);
 	}
 }

@@ -7,9 +7,9 @@ public class SegmentLC extends LoadCommand{
 	
 	public  String segment;
 	public  String vm_addr;
-	public  int vm_size;
-	public  int file_off;
-	public  int file_size;
+	public  long vm_size;
+	public  long file_off;
+	public  long file_size;
 	public  String max_pro;
 	public  String init_pro;
 	public  int sec_num;

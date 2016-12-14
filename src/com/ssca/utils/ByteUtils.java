@@ -19,6 +19,19 @@ public class ByteUtils {
 		return res;
 	}
 	
+	public static byte[] reverseBytes(byte[]res){
+		int start = 0;
+		int end   = res.length-1;
+		while(start < end){
+			byte temp  = res[start];
+			res[start] = res[end];
+			res[end]   = temp;
+			start++;end--;
+		}
+		
+		return res;
+	}
+	
 	
 	public static byte[] exchangeBytes(byte[] input){
 		if(input.length%2!=0){
@@ -46,6 +59,21 @@ public class ByteUtils {
 				| ((res[2] << 24) >>> 8) | (res[3] << 24);   
 		return targets;   
 	}
+	
+	public static long eightBytesToInt(byte[] res){
+		byte[]lowByte = new byte[4];
+		for(int i=0;i<4;i++)
+			lowByte[i] = res[i];
+		byte[]highByte = new byte[4];
+		for(int i=0;i<4;i++)
+			highByte[i] = res[i+4];
+		
+		int lowInt = fourBytesToInt(lowByte);
+		long highInt = fourBytesToInt(highByte);
+		long re = lowInt + (highInt<<32);
+		return re;
+	}
+	
 	
 	public static int two(byte[] res){
 		int targets = (res[0] & 0xff) | ((res[1] << 8) & 0xff00);
