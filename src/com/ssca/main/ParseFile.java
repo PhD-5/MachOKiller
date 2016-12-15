@@ -33,12 +33,14 @@ public class ParseFile {
 	}
 	
 	public static void main(String[] args) {
-		Object o = parse("/Users/konghaohao/Desktop/iOStest/VulApp");
+		Object o = parse("/Users/konghaohao/Desktop/iOStest/DamnVulnerableIOSApp");
 		if(o instanceof Fat){
 			System.out.println("this is a fat");
 			Fat fat = (Fat)o;
 			//get every from fat
 			System.out.println(fat.header.magic);
+			System.out.println(fat.machoList.get(0).classAndMethods.get("Model"));
+			System.out.println(fat.machoList.get(1).classAndMethods.get("Model"));
 		}else{
 			System.out.println("this is a macho");
 			MachO macho = (MachO)o;

@@ -56,52 +56,80 @@ public class ClassListParser {
 				long classOff = vm - dataSectionVM + dataSectionOff;
 				
 				//parse data
-				parseDataSection(classOff);
+				parseDataSection(classOff,"-");
 				
 			}else{
 				byte[]data = new byte[4];
 				dis.read(data);
 				long vm = ByteUtils.fourBytesToInt(data);
 				// calculate file offset of data(which is vm addr)
-				Section _DATA__data = ((SegmentLC)(macho.lcMap.get("LC_SEGMENT__DATA"))).sections.get("__data");
+				Section _DATA__data = ((SegmentLC)(macho.lcMap.get("LC_SEGMENT__DATA"))).sections.get("__objc_data");
 				long dataSectionVM = _DATA__data.addr;
 				int dataSectionOff = _DATA__data.offset;
 				long classOff = vm - dataSectionVM + dataSectionOff;
 				
 				//parse data
-				parseDataSection( classOff);
+				parseDataSection( classOff,"-");
 			}
 		}
 	}
 	
-	public  void parseDataSection(long dataOffset) throws IOException{
+	public  void parseDataSection(long dataOffset,String methType) throws IOException{
 		DataInputStream dis = InputStreamUtils.getFileDis(filePath);
 		dis.skip(machOff+dataOffset);
 		
 		if(macho.header.arch==64){
-			dis.skipBytes(32);
+			//parse isa for class methods
+			byte [] isa = new byte[8];
+			dis.read(isa);
+			long isa_vm = ByteUtils.eightBytesToLong(isa);
+			if(isa_vm!=0){
+				//isa vm is still in __objc_data section
+				Section _DATA__data = ((SegmentLC)(macho.lcMap.get("LC_SEGMENT_64__DATA"))).sections.get("__objc_data");
+				long dataSectionVM = _DATA__data.addr;
+				int dataSectionOff = _DATA__data.offset;
+				long classOff = isa_vm - dataSectionVM + dataSectionOff;
+				//parse isa data
+				parseDataSection(classOff,"+");
+			}
+			
+			
+			dis.skipBytes(24);  //skip superclass / cache / vtable
 			byte[]data = new byte[8];
 			dis.read(data);
 			Section _DATA__const = ((SegmentLC)(macho.lcMap.get("LC_SEGMENT_64__DATA"))).sections.get("__objc_const");
 			long constSectionVM = _DATA__const.addr;
 			int constSectionOff = _DATA__const.offset;
 			long constOffset = ByteUtils.eightBytesToLong(data) - constSectionVM + constSectionOff;
-			parseConstSection(constOffset);
+			parseConstSection(constOffset,methType);
 			
 		}else if(macho.header.arch==32){//TODO 32
-			dis.skip(16);
+			byte[]isa = new byte[4];
+			dis.read(isa);
+			long isa_vm = ByteUtils.fourBytesToInt(isa);
+			if(isa_vm!=0){
+				//isa vm is still in __objc_data section
+				Section _DATA__data = ((SegmentLC)(macho.lcMap.get("LC_SEGMENT__DATA"))).sections.get("__objc_data");
+				long dataSectionVM = _DATA__data.addr;
+				int dataSectionOff = _DATA__data.offset;
+				long classOff = isa_vm - dataSectionVM + dataSectionOff;
+				//parse isa data
+				parseDataSection(classOff,"+");
+			}
+			
+			dis.skip(12);//skip superclass / cache / vtable
 			byte[]data = new byte[4];
 			dis.read(data);
 			Section _DATA__const = ((SegmentLC)(macho.lcMap.get("LC_SEGMENT__DATA"))).sections.get("__objc_const");
 			long constSectionVM = _DATA__const.addr;
 			int constSectionOff = _DATA__const.offset;
 			long constOffset = ByteUtils.fourBytesToInt(data) - constSectionVM + constSectionOff;
-			parseConstSection( constOffset);
+			parseConstSection(constOffset,methType);
 		}
 		
 	}
 	
-	public  void parseConstSection(long constOffset) throws IOException{
+	public  void parseConstSection(long constOffset,String methType) throws IOException{
 		DataInputStream dis = InputStreamUtils.getFileDis(filePath);
 		dis.skip(machOff+constOffset);
 		
@@ -122,15 +150,17 @@ public class ClassListParser {
 			
 			//parse basemethods
 			if(ByteUtils.eightBytesToLong(baseMethods)==0){
-				System.out.println("  has no instance methods");
+				System.out.println("  has no "+ methType+" methods");
 				return;
 			}
 			Section _DATA__const = ((SegmentLC)(macho.lcMap.get("LC_SEGMENT_64__DATA"))).sections.get("__objc_const");
 			long constSectionVM = _DATA__const.addr;
 			int constSectionOff = _DATA__const.offset;
 			long baseMethOff = ByteUtils.eightBytesToLong(baseMethods) - constSectionVM + constSectionOff;
-			macho.classAndMethods.put(className, new ArrayList<String>());
-			parseBaseMethods(baseMethOff,className);
+			if(macho.classAndMethods.get(className)==null)
+				macho.classAndMethods.put(className, new ArrayList<String>());
+				
+			parseBaseMethods(baseMethOff,className,methType);
 			
 		}else if(macho.header.arch==32){//TODO 32
 			dis.skipBytes(16);
@@ -157,11 +187,12 @@ public class ClassListParser {
 			long constSectionVM = _DATA__const.addr;
 			int constSectionOff = _DATA__const.offset;
 			long baseMethOff = ByteUtils.fourBytesToInt(baseMethods) - constSectionVM + constSectionOff;
-			macho.classAndMethods.put(className, new ArrayList<String>());
-			parseBaseMethods(baseMethOff,className);
+			if(macho.classAndMethods.get(className)==null)
+				macho.classAndMethods.put(className, new ArrayList<String>());
+			parseBaseMethods(baseMethOff,className,methType);
 		}
 	}
-	public  void parseBaseMethods(long baseMethOffset,String className) throws IOException{
+	public  void parseBaseMethods(long baseMethOffset,String className,String methType) throws IOException{
 		DataInputStream dis = InputStreamUtils.getFileDis(filePath);
 		dis.skip(machOff+baseMethOffset);
 		
@@ -184,8 +215,8 @@ public class ClassListParser {
 				int methSectionOff = _TEXT__methname.offset;
 				long baseMethOff = ByteUtils.eightBytesToLong(name) - methSectionVM + methSectionOff;
 				String methName =new String(ReadStrFromAddr.read(filePath, baseMethOff+machOff));
-				System.out.println("  "+methName);
-				macho.classAndMethods.get(className).add(methName);
+				System.out.println("  "+methType + methName);
+				macho.classAndMethods.get(className).add(methType + methName);
 			}
 			
 			
@@ -208,8 +239,8 @@ public class ClassListParser {
 				int methSectionOff = _TEXT__methname.offset;
 				long baseMethOff = ByteUtils.fourBytesToInt(name) - methSectionVM + methSectionOff;
 				String methName =new String(ReadStrFromAddr.read(filePath, baseMethOff+machOff));
-				System.out.println("  "+methName);
-				macho.classAndMethods.get(className).add(methName);
+				System.out.println("  "+methType+methName);
+				macho.classAndMethods.get(className).add(methType+methName);
 			}
 		}
 	}
