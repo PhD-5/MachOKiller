@@ -19,7 +19,7 @@ public class ParseFile {
 			String magicStr = ByteUtils.bytesToHexString(magic);
 			if(magicStr.equals("cafebabe")){
 				// this is a fat file
-				Fat fat = FatParser.getFatInfo(filePath);
+				Fat fat = new FatParser().getFatInfo(filePath);
 				return fat;
 			}else{
 				MachO macho = new MachOParser(filePath, 0).parseMach_O();

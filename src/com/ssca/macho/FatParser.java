@@ -10,7 +10,7 @@ import com.ssca.utils.ByteUtils;
 import com.ssca.utils.InputStreamUtils;
 
 public class FatParser {
-	public static Fat getFatInfo(String filePath) throws IOException{
+	public Fat getFatInfo(String filePath) throws IOException{
 		Fat fat = new Fat();
 		FatHeader fatHeader = new FatHeader();
 		fat.header = fatHeader;
