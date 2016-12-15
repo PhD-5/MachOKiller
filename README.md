@@ -10,5 +10,5 @@ Parse Mach-O or fat file in iOS/Mac OS, extract classes and methods.
 `Fat fat = new FatParser().getFatInfo(filePath);`
 
 ```
-MachO and Fat see com.ssca.format.(MachO.java/Fat.java)
+MachO and Fat see com.ssca.format.(MachO.java/Fat.java) for details.
 ```
