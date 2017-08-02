@@ -3,10 +3,10 @@ Parse Mach-O or fat file in iOS/Mac OS, extract classes and methods.
 
 ## manual
 
-####For Mach-O file: 
+#### For Mach-O file: 
 `MachO macho = new MachOParser(filePath, 0).parseMach_O();`
 
-####For Fat file:
+#### For Fat file:
 `Fat fat = new FatParser().getFatInfo(filePath);`
 
 ```
