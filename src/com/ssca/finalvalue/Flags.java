@@ -16,7 +16,7 @@ public final class Flags {
 	public static final int MH_ALLMODSBOUND = 0x1000;
 	public static final int MH_SUBSECTIONS_VIA_SYMBOLS = 0x2000;
 	public static final int MH_CANONICAL = 0x4000;
-	public static final int MH_WEAK_DEFINES = 0x800;
+	public static final int MH_WEAK_DEFINES = 0x8000;
 	public static final int MH_BINDS_TO_WEAK = 0x10000;
 	public static final int MH_ALLOW_STACK_EXECUTION = 0x20000;
 	public static final int MH_ROOT_SAFE = 0x40000;
